@@ -30,6 +30,50 @@ public class Bank {
         this.pin = "";
     }
 
+    public Bank(String name) throws FileNotFoundException, IOException {
+        this.name = name;
+        this.userAcc = new File("database/" + name + ".txt");
+
+        Reader acc = new FileReader(this.userAcc);
+        BufferedReader br = new BufferedReader(acc);
+
+        String line = "";
+        String pin = "";
+        String accNum = "";
+        String accBal = "";
+        while(line != null) {
+            line = br.readLine();
+            if(line == null)
+                break;
+            if(line.startsWith("Pin")) {
+                String words[] = line.split(": ");
+                pin = words[1];
+            }
+            if(line.startsWith("Account no.")) {
+                String words[] = line.split(": ");
+                accNum = words[1];
+            }
+            if(line.startsWith("[")) {
+                String[] details = line.split(" ");
+                // The last String in line, continue updating until last entry
+                accBal = details[details.length - 1];
+            }
+        }
+        br.close();
+        acc.close();
+
+        if(!accBal.equals("")) {
+            this.accBal = Float.parseFloat(accBal);
+        } else {
+            this.accBal = 0f;
+        }
+
+        this.pin = pin;
+        this.transactions = new ArrayList<>();
+        this.accNum = accNum;
+
+    }
+
     public Bank(String name, String pin) {
         this.name = name;
         this.pin = pin;
@@ -64,29 +108,6 @@ public class Bank {
         return "Current balance: %f\n".formatted(getAccBal());
     }
 
-    // Only use when user exists
-    public void setBal() throws FileNotFoundException, IOException {
-        Reader read = new FileReader(userAcc);
-        BufferedReader br = new BufferedReader(read);
-
-        String line = "";
-        String readBal = "";
-        while(line != null) {
-            line = br.readLine();
-            if(line == null)
-                break;
-            if(line.startsWith("[")) {
-                String[] details = line.split(" ");
-                // The last String in line, continue updating until last entry
-                readBal = details[details.length - 1];
-            }
-        }
-        br.close();
-        if(!readBal.equals("")) {
-            setAccBal(Float.parseFloat(readBal));
-        }
-    }
-
     public void update() throws IOException {
         Writer account;
         BufferedWriter bw;
@@ -102,7 +123,6 @@ public class Bank {
         } else {
             account = new FileWriter(userAcc, true);
             bw = new BufferedWriter(account);
-            setBal();
         }
         
         transactions.forEach(trans -> {

@@ -100,28 +100,13 @@ public class ClientHandler implements Runnable {
                     System.exit(0);
                 }
             } else {
+                userBank = new Bank(name);
                 dos.writeUTF("Please enter your pin number: ");
                 dos.flush();
 
                 pin = dis.readUTF();
                 // Check if pin is correct
-                Reader acc = new FileReader("database/" + name + ".txt");
-                BufferedReader br = new BufferedReader(acc);
-
-                String line = "";
-                String correctPin = "";
-                while(line != null) {
-                    line = br.readLine();
-                    if(line == null)
-                        break;
-                    if(line.startsWith("Pin")) {
-                        String words[] = line.split(": ");
-                        correctPin = words[1];
-                        break;
-                    }
-                }
-                br.close();
-                acc.close();
+                String correctPin = userBank.getPin();
 
                 int attempts = 3;
                 while(!pin.equals(correctPin)) {
@@ -146,8 +131,6 @@ public class ClientHandler implements Runnable {
                         System.exit(0);
                     }
                 }
-                userBank = new Bank(name, pin);
-                userBank.update();
                 dos.writeUTF("Login successful!");
                 dos.flush();
             }
